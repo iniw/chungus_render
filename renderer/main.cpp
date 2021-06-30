@@ -62,7 +62,7 @@ int main() {
         renderer::start();
 
         // worst case scenario type beat
-        for (int i = 0; i < 400; i++)
+        for (int i = 0; i < 1000; i++)
             renderer::rect({0.f + i, 0.f + i, 200.f, 200.f}, {255, 0, 0, 255});
 
         renderer::triangle({200.f, 200.f}, {250.f, 150.f}, {300.f, 200.f}, {255, 255, 0, 255});
