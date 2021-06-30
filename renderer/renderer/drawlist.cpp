@@ -160,12 +160,12 @@ void renderer::s_draw_list::path_rect(const s_point& min, const s_point& max) {
     path_to({ min.x, max.y }); 
 }
 
-void renderer::s_draw_list::path_stroke(const s_color& col) {
-    add_polyline(m_points.buffer, m_points.size, col, 1.f);
+void renderer::s_draw_list::path_stroke(const s_color& col, const bool aa) {
+    add_polyline(m_points.buffer, m_points.size, col, 1.f, aa);
     path_clear();
 }
 
-void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num_points, const s_color& col, float thickness) {
+void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num_points, const s_color& col, const float& thickness, const bool aa) {
     if (num_points < 2)
         return;
 
@@ -230,6 +230,13 @@ void renderer::s_draw_list::add_triangle(const s_point& point1, const s_point& p
     path_to(point1);
     path_to(point2);
     path_to(point3);
+
+    path_stroke(col);
+}
+
+void renderer::s_draw_list::add_line(const s_point& point1, const s_point& point2, const s_color& col, const float& thickness, const bool aa) {
+    path_to(point1);
+    path_to(point2);
 
     path_stroke(col);
 }

@@ -62,11 +62,12 @@ namespace renderer {
 		}
 
 		void path_rect(const s_point& min, const s_point& max);
-		void path_stroke(const s_color& col);
+		void path_stroke(const s_color& col, const bool aa = false);
 
-		void add_polyline(const s_point* points, const size_t num_points, const s_color& col, float thickness = 1.f);
+		void add_polyline(const s_point* points, const size_t num_points, const s_color& col, const float& thickness = 1.f, const bool aa = false);
 		void add_rect(const s_rect& rect, const s_color& col);
 		void add_triangle(const s_point& point1, const s_point& point2, const s_point& point3, const s_color& col);
+		void add_line(const s_point& point1, const s_point& point2, const s_color& col, const float& thickness = 1.f, const bool aa = false);
 	};
 
 	namespace d3d9 {

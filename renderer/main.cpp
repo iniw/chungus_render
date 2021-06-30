@@ -65,6 +65,9 @@ int main() {
 
         renderer::triangle({200.f, 200.f}, {250.f, 150.f}, {300.f, 200.f}, {255, 255, 0, 255});
 
+        renderer::draw_list.add_line({ 50.f, 50.f }, { 75.f, 50.f }, { 255, 255, 255, 255 });
+        renderer::draw_list.add_line({ 60.f, 50.f }, { 100.f, 75.f }, { 255, 255, 255, 255 });
+
         renderer::end();
 
 
