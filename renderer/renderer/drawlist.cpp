@@ -153,16 +153,16 @@ void renderer::s_draw_list::push_draw_cmd() {
     }
 }
 
-void renderer::s_draw_list::path_stroke(const s_color& color) {
-    add_polyline(m_points.buffer, m_points.size, color, 1.f);
+void renderer::s_draw_list::path_stroke(const s_color& col) {
+    add_polyline(m_points.buffer, m_points.size, col, 1.f);
     path_clear();
 }
 
-void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num_points, const s_color& color, float thickness) {
+void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num_points, const s_color& col, float thickness) {
     if (num_points < 2)
         return;
 
-    const d3d_color d3d_col = color.to_d3d();
+    const d3d_color d3d_col = col.to_d3d();
 
     // https://docs.microsoft.com/en-us/windows/win32/direct3d9/rendering-from-vertex-and-index-buffers
     const size_t num_indices = num_points * 6;
@@ -206,21 +206,27 @@ void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num
     }
 }
 
-void renderer::s_draw_list::add_rect(const s_rect& rect, const s_color& color) {
+void renderer::s_draw_list::add_rect(const s_rect& rect, const s_color& col) {
+    if (col.a == 0)
+        return;
+
     path_to({rect.x, rect.y});
     path_to({rect.x + rect.w, rect.y});
     path_to({rect.x + rect.w, rect.y + rect.h});
     path_to({rect.x, rect.y + rect.h});
 
-    path_stroke(color);
+    path_stroke(col);
 }
 
-void renderer::s_draw_list::add_triangle(const s_point& point1, const s_point& point2, const s_point& point3, const s_color& color) {
+void renderer::s_draw_list::add_triangle(const s_point& point1, const s_point& point2, const s_point& point3, const s_color& col) {
+    if (col.a == 0)
+        return;
+
     path_to(point1);
     path_to(point2);
     path_to(point3);
 
-    path_stroke(color);
+    path_stroke(col);
 }
 
 #pragma region d3d9
