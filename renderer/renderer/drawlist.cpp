@@ -58,7 +58,7 @@ bool renderer::drawlist::reserve(const size_t& num_vertices, const size_t& num_i
         // copy old to new
         std::memcpy(mem, m_vertices.buffer, m_vertices.capacity);
         // free old
-        //std::free(m_vertices.buffer);
+        std::free(m_vertices.buffer);
 
         // swap pointers and set size
         m_vertices.buffer = static_cast<d3d9::vertex*>(mem);
