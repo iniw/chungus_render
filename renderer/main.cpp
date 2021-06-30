@@ -60,13 +60,14 @@ int main() {
         }
 
         renderer::start();
-       
+
         renderer::rect({100.f, 100.f, 250.f, 250.f}, {255, 0, 0, 255});
 
         renderer::triangle({200.f, 200.f}, {250.f, 150.f}, {300.f, 200.f}, {255, 255, 0, 255});
 
-        renderer::end();
+        renderer::line({300.f, 400.f}, {150.f, 200.f}, {255, 255, 255, 255});
 
+        renderer::end();
 
         d3d9_device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0, 0);
         d3d9_device->BeginScene();
