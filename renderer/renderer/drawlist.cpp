@@ -26,7 +26,6 @@ void renderer::s_draw_list::init() {
 
 bool renderer::s_draw_list::reserve(size_t num_vertices, size_t num_indices) {
     size_t desired_capacity = (m_vertices.size + num_vertices) * sizeof(d3d9_vertex);
-
     if (desired_capacity > m_vertices.capacity) {
         const size_t old_size = m_vertices.capacity;
 
@@ -50,7 +49,6 @@ bool renderer::s_draw_list::reserve(size_t num_vertices, size_t num_indices) {
     }
 
     desired_capacity = (m_indices.size + num_indices) * sizeof(d3d9_index);
-
     if (desired_capacity > m_indices.capacity) {
         const size_t old_size = m_indices.capacity;
 
@@ -78,7 +76,6 @@ bool renderer::s_draw_list::reserve(size_t num_vertices, size_t num_indices) {
 
 bool renderer::s_draw_list::reserve_points(size_t num_points) {
     const size_t desired_size = (m_points.size + num_points) * sizeof(s_point);
-
     if (desired_size > m_points.capacity) {
         const size_t old_size = m_points.capacity;
 
@@ -117,17 +114,16 @@ void renderer::s_draw_list::push_draw_cmd() {
 
     // create draw commands until all vertices and indices are present in draw commands
     while (num_unaccounted_indices > 0) {
-        // If the number of unaccounted indices is less than the maximum number of indices that can be hold by 'd3d9_index'(usually 2^16)
-        if (num_unaccounted_indices < (1 << (8 * sizeof(d3d9_index)))) {
+        // if the number of unaccounted indices is less than the maximum number of indices that can be hold by d3d9_index
+        if (num_unaccounted_indices < UINT16_MAX) {
             // add draw command
             m_draw_cmds.buffer[m_draw_cmds.size].m_num_vertices = m_vertices.size - num_accounted_vertices;
             m_draw_cmds.buffer[m_draw_cmds.size].m_num_indices = m_indices.size - num_accounted_indices;
 
             m_draw_cmds.size++;
             return;
-        } 
-        else {
-            size_t num_indices = (1 << (8 * sizeof(d3d9_index)));
+        } else {
+            size_t num_indices = UINT16_MAX;
             d3d9_index last_index = m_indices.buffer[num_indices - 1];
 
             bool is_last_index_referenced = false;
@@ -169,7 +165,6 @@ void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num
 
     if (!reserve(num_vertices, num_indices))
         return;
-
     for (size_t i = 0; i < num_points; i++) {
         const size_t j = (i + 1) == num_points ? 0 : i + 1;
         const s_point& p0 = points[i];
@@ -234,27 +229,25 @@ void renderer::d3d9::set_device(LPDIRECT3DDEVICE9 d3d9_device) {
 
     info.viewport.X;
     info.viewport.Y = 0;
-    info.viewport.MinZ = 0.f;
-    info.viewport.MaxZ = 1.f;
+    info.viewport.MinZ = 0.0f;
+    info.viewport.MaxZ = 1.0f;
 }
 
 void renderer::d3d9::set_size(const s_vec2& size) {
-    const float L = 0.f;
-    const float& R = size.x;
-    const float T = 0.f;
-    const float& B = size.y;
-
+    const float L = 0.0f;
+    const float R = size.x + 0.0f;
+    const float T = 0.0f;
+    const float B = size.y + 0.0f;
     float matrix[4][4] = {
-        { 2.f / (R - L),     0.f,             0.f, 0.f },
-        { 0.f,               2.f / (T - B),   0.f, 0.f },
-        { 0.f,               0.f,             0.f, 0.f },
-        { (R + L) / (L - R), (T + B) / (B - T), 0.f, 1.f },
+        { 2.0f / (R - L),     0.0f,             0.0f, 0.0f },
+        { 0.0f,               2.0f / (T - B),   0.0f, 0.0f },
+        { 0.0f,               0.0f,             0.0f, 0.0f },
+        { (R + L) / (L - R), (T + B) / (B - T), 0.0f, 1.0f },
     };
-
     std::memcpy(&info.proj, matrix, sizeof(matrix));
 
-    info.viewport.Width = static_cast<DWORD>(size.x);
-    info.viewport.Height = static_cast<DWORD>(size.y);
+    info.viewport.Width = (DWORD)size.x;
+    info.viewport.Height = (DWORD)size.y;
 }
 
 void renderer::d3d9::set_render_states() {
@@ -292,7 +285,8 @@ void renderer::d3d9::set_render_states() {
 }
 
 void renderer::d3d9::create_vertex_declaration() {
-    constexpr D3DVERTEXELEMENT9 decl_elements[] = {
+    constexpr D3DVERTEXELEMENT9 decl_elements[] =       
+    {
         {0, 0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
         {0, 8, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
         //{0, 8, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0}, add back when i add textures
@@ -334,10 +328,9 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
         if (info.device->CreateIndexBuffer(info.ib_size * sizeof(d3d9_index), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(d3d9_index) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &info.ib, NULL) < 0)
             return;
     }
-
     {
         // copy vertices to gpu
-        d3d9_vertex* new_vertices = nullptr;
+        d3d9_vertex* new_vertices = 0;
         if (info.vb->Lock(0, draw_list->m_vertices.size * sizeof(d3d9_vertex), reinterpret_cast<void**>(&new_vertices), D3DLOCK_DISCARD) < 0)
             return;
 
@@ -345,10 +338,9 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
 
         info.vb->Unlock();
     }
-
     {
         // copy indices to the gpu
-        d3d9_index* new_indices = nullptr;
+        d3d9_index* new_indices = 0;
         if (info.ib->Lock(0, draw_list->m_indices.size * sizeof(d3d9_index), reinterpret_cast<void**>(&new_indices), D3DLOCK_DISCARD) < 0)
             return;
 
@@ -363,11 +355,9 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
     for (size_t i = 0; i < draw_list->m_draw_cmds.size; i++) {
         auto& cmd = draw_list->m_draw_cmds.buffer[i];
 
-        // render
         info.device->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, cmd.m_num_indices, index_buffer_offset, cmd.m_num_indices / 3);
-
-        // increase index for next primitive
         index_buffer_offset += cmd.m_num_indices;
+
     }
 }
 #pragma endregion
