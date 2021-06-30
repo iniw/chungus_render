@@ -178,7 +178,7 @@ void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num
 
         s_point diff = (p1 - p0).normalize();
 
-        diff *= 0.5f;
+        diff *= thickness * 0.5f;
 
         const size_t offset = m_vertices.size;
 
@@ -209,7 +209,7 @@ void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num
 void renderer::s_draw_list::add_rect(const s_rect& rect, const s_color& color) {
     path_to({rect.x, rect.y});
     path_to({rect.x + rect.w, rect.y});
-    path_to({rect.x + rect.w, rect.y + rect.h});
+    path_to({rect.x + rect.w + 0.5f, rect.y + rect.h});
     path_to({rect.x, rect.y + rect.h});
 
     path_stroke(color);
@@ -240,11 +240,10 @@ void renderer::d3d9::set_device(LPDIRECT3DDEVICE9 d3d9_device) {
 }
 
 void renderer::d3d9::set_size(const s_vec2& size) {
-    const float L = 0.f;
-    const float& R = size.x + 0.f;
-    const float T = 0.f;
-    const float& B = size.y + 0.f;
-
+    const float L = 0.0f;
+    const float R = size.x;
+    const float T = 0.0f;
+    const float B = size.y;
     float matrix[4][4] = {
         { 2.f / (R - L),     0.f,             0.f, 0.f },
         { 0.f,               2.f / (T - B),   0.f, 0.f },
@@ -296,7 +295,7 @@ void renderer::d3d9::create_vertex_declaration() {
     constexpr D3DVERTEXELEMENT9 decl_elements[] = {
         {0, 0, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
         {0, 8, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
-        //{0, 8, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0}, add back when i add textures
+        //{0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0}, add back when i add textures
         D3DDECL_END()
     };
 
@@ -312,12 +311,14 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
             info.vb = 0;
         }
 
-        std::cout << "creating a new vertex buffer. old size: " << info.vb_size << " new size: " << (draw_list->m_vertices.size + INITIAL_VERTEX_BUFFER_SIZE) * sizeof(d3d9_vertex) << "\n";
+        //std::cout << "creating a new vertex buffer. old size: " << info.vb_size << " new size: " << (draw_list->m_vertices.size + INITIAL_VERTEX_BUFFER_SIZE) * sizeof(d3d9_vertex) << "\n";
 
         // create the new buffer
         info.vb_size = draw_list->m_vertices.size + INITIAL_VERTEX_BUFFER_SIZE;
         if (info.device->CreateVertexBuffer(info.vb_size * sizeof(d3d9_vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 0, D3DPOOL_DEFAULT, &info.vb, NULL) < 0)
             return;
+            
+        set_render_states();
     }
 
     // if we haven't created our index buffer yet or it's not big enough
@@ -328,12 +329,14 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
             info.ib = 0;
         }
 
-        std::cout << "creating a new index buffer. old size: " << info.ib_size << " new size: " << (draw_list->m_indices.size + INITIAL_INDEX_BUFFER_SIZE) * sizeof(d3d9_index) << "\n";
+        //std::cout << "creating a new index buffer. old size: " << info.ib_size << " new size: " << (draw_list->m_indices.size + INITIAL_INDEX_BUFFER_SIZE) * sizeof(d3d9_index) << "\n";
 
         // create the new buffer
         info.ib_size = draw_list->m_indices.size + INITIAL_INDEX_BUFFER_SIZE;
         if (info.device->CreateIndexBuffer(info.ib_size * sizeof(d3d9_index), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(d3d9_index) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &info.ib, NULL) < 0)
             return;
+
+        set_render_states();
     }
 
     {
@@ -357,8 +360,6 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
 
         info.ib->Unlock();
     }
-
-    set_render_states();
 
     size_t index_buffer_offset = 0;
     for (size_t i = 0; i < draw_list->m_draw_cmds.size; i++) {

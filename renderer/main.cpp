@@ -61,7 +61,7 @@ int main() {
 
         renderer::start();
        
-        renderer::rect({100.f, 100.f, 200.f, 200.f}, {255, 0, 0, 255});
+        renderer::rect({100.f, 100.f, 250.f, 250.f}, {255, 0, 0, 255});
 
         renderer::triangle({200.f, 200.f}, {250.f, 150.f}, {300.f, 200.f}, {255, 255, 0, 255});
 
