@@ -11,11 +11,9 @@ namespace renderer {
 
 	using s_point = s_vec2;
 
-	namespace d3d9 {
-		struct s_vertex {
-			s_point pos;
-			d3d_color color;
-			//s_vec2 uv; add back when i add textures
-		};
-	}
+	struct d3d9_vertex {
+		s_point pos;
+		d3d_color color;
+		//s_vec2 uv; add back when i add textures
+	};
 }

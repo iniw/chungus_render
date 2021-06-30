@@ -30,7 +30,7 @@ namespace renderer {
 		} m_points;
 
 		struct {
-			d3d9::s_vertex* buffer;
+			d3d9_vertex* buffer;
 			size_t size;
 			size_t capacity;
 		} m_vertices;
