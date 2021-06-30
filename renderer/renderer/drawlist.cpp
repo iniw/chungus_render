@@ -114,8 +114,8 @@ void renderer::s_draw_list::push_draw_cmd() {
 
     // create draw commands until all vertices and indices are present in draw commands
     while (num_unaccounted_indices > 0) {
-        // If the number of unaccounted indices is less than the maximum number of indices that can be hold by 'd3d9_index'(usually 2^16)
-        if (num_unaccounted_indices < (1 << (8 * sizeof(d3d9_index)))) {
+        // if the number of unaccounted indices is less than the maximum number of indices that can be hold by d3d9_index
+        if (num_unaccounted_indices < UINT16_MAX) {
             // add draw command
             m_draw_cmds.buffer[m_draw_cmds.size].m_num_vertices = m_vertices.size - num_accounted_vertices;
             m_draw_cmds.buffer[m_draw_cmds.size].m_num_indices = m_indices.size - num_accounted_indices;
@@ -123,7 +123,7 @@ void renderer::s_draw_list::push_draw_cmd() {
             m_draw_cmds.size++;
             return;
         } else {
-            size_t num_indices = (1 << (8 * sizeof(d3d9_index)));
+            size_t num_indices = UINT16_MAX;
             d3d9_index last_index = m_indices.buffer[num_indices - 1];
 
             bool is_last_index_referenced = false;
