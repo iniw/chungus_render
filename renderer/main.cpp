@@ -42,8 +42,8 @@ int main() {
     memset(&d3dpp, 0, sizeof(D3DPRESENT_PARAMETERS));
     d3dpp.Windowed = TRUE;
     d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
-    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+    d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;
+    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
     if (d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3d9_device) < 0)
         return false;
 
@@ -60,16 +60,14 @@ int main() {
         }
 
         renderer::start();
-       
+
         renderer::rect({100.f, 100.f, 250.f, 250.f}, {255, 0, 0, 255});
 
         renderer::triangle({200.f, 200.f}, {250.f, 150.f}, {300.f, 200.f}, {255, 255, 0, 255});
 
-        renderer::draw_list.add_line({ 50.f, 50.f }, { 75.f, 50.f }, { 255, 255, 255, 255 });
-        renderer::draw_list.add_line({ 60.f, 50.f }, { 100.f, 75.f }, { 255, 255, 255, 255 });
+        renderer::line({300.f, 400.f}, {150.f, 200.f}, {255, 255, 255, 255});
 
         renderer::end();
-
 
         d3d9_device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0, 0);
         d3d9_device->BeginScene();

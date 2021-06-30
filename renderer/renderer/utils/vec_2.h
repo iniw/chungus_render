@@ -3,10 +3,11 @@
 
 namespace renderer {
 	struct s_vec2 {
+	public:
 		float x, y;
-
+	public:
 		constexpr s_vec2(float x = 0.f, float y = 0.f) : x(x), y(y) {}
-
+	public:
 		inline s_vec2 operator-(const s_vec2& v) const {
 			s_vec2 r = *this;
 			r.x -= v.x;
