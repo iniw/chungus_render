@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <iostream>
 #include "renderer/renderer.h"
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -21,19 +22,19 @@ int main() {
     wcx.lpfnWndProc = WindowProc;
     wcx.lpszClassName = TEXT("Chungus Renderer");
 
-    renderer::s_vec2 display_size = {640.f, 480.f};
-
     if (!RegisterClassExW(&wcx))
         return -1;
 
-    HWND hWnd;
-    if (!(hWnd = CreateWindowExW(0, TEXT("Chungus Renderer"), TEXT("Chungus Renderer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, display_size.x, display_size.y, NULL, NULL, NULL, NULL)))
+    constexpr renderer::s_vec2 display_size = {640.f, 480.f};
+
+    HWND window;
+    if (!(window = CreateWindowExW(0, TEXT("Chungus Renderer"), TEXT("Chungus Renderer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, display_size.x, display_size.y, NULL, NULL, NULL, NULL)))
         return -1;
 
-    ShowWindow(hWnd, SW_SHOW);
+    ShowWindow(window, SW_SHOW);
 
     LPDIRECT3D9 d3d9;
-    LPDIRECT3DDEVICE9 d3dDevice;
+    LPDIRECT3DDEVICE9 d3d9_device;
     if ((d3d9 = Direct3DCreate9(D3D_SDK_VERSION)) == NULL)
         return -1;
 
@@ -43,10 +44,10 @@ int main() {
     d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
     d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
     d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
-    if (d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3dDevice) < 0)
+    if (d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3d9_device) < 0)
         return false;
 
-    renderer::init(d3dDevice, std::move(display_size));
+    renderer::init(d3d9_device, display_size);
 
     MSG msg;
     while (true) {
@@ -60,17 +61,19 @@ int main() {
 
         renderer::start();
 
-        renderer::rect({100.f, 100.f, 200.f, 200.f}, {255, 0, 0, 255});
+        // worst case scenario type beat
+        for (int i = 0; i < 400; i++)
+            renderer::rect({0.f + i, 0.f + i, 200.f, 200.f}, {255, 0, 0, 255});
 
         renderer::triangle({200.f, 200.f}, {250.f, 150.f}, {300.f, 200.f}, {255, 255, 0, 255});
 
         renderer::end();
 
 
-        d3dDevice->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0, 0);
-        d3dDevice->BeginScene();
+        d3d9_device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0, 0);
+        d3d9_device->BeginScene();
         renderer::render();
-        d3dDevice->EndScene();
-        HRESULT result = d3dDevice->Present(NULL, NULL, NULL, NULL);
+        d3d9_device->EndScene();
+        HRESULT result = d3d9_device->Present(NULL, NULL, NULL, NULL);
     }
 }

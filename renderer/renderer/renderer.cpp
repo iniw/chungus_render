@@ -1,8 +1,8 @@
 #include "renderer.h"
 
-void renderer::init(LPDIRECT3DDEVICE9 d3d9_device, s_vec2&& display_size) {
+void renderer::init(LPDIRECT3DDEVICE9 d3d9_device, const s_vec2& display_size) {
 	draw_list.init();
-	d3d9::init(d3d9_device, std::move(display_size));
+	d3d9::init(d3d9_device, display_size);
 
 	initialized = true;
 }
@@ -21,10 +21,10 @@ void renderer::render() {
 	d3d9::render(&draw_list);
 }
 
-void renderer::rect(s_rect&& rect, s_color&& col) {
-	draw_list.add_rect(std::move(rect), std::move(col));
+void renderer::rect(const s_rect& rect, const s_color& col) {
+	draw_list.add_rect(rect, col);
 }
 
-void renderer::triangle(s_point&& point1, s_point&& point2, s_point&& point3, s_color&& col) {
-	draw_list.add_triangle(std::move(point1), std::move(point2), std::move(point3), std::move(col));
+void renderer::triangle(const s_point& point1, const s_point& point2, const s_point& point3, const s_color& col) {
+	draw_list.add_triangle(point1, point2, point3, col);
 }

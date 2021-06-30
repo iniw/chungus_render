@@ -5,29 +5,30 @@
 #include <iostream>
 
 void renderer::s_draw_list::init() {
-   m_size_path = 32 * sizeof(s_point);
-   m_points = reinterpret_cast<s_point*>(std::malloc(m_size_path));
+   m_size_points = INITIAL_POINT_BUFFER_SIZE * sizeof(s_point);
+   m_points = reinterpret_cast<s_point*>(std::malloc(m_size_points));
    
-   m_size_vertices = 2000 * sizeof(d3d9::s_vertex);
+   m_size_vertices = INITIAL_VERTEX_BUFFER_SIZE * sizeof(d3d9::s_vertex);
    m_vertices = reinterpret_cast<d3d9::s_vertex*>(std::malloc(m_size_vertices));
    
-   m_size_indices = 4000 * sizeof(d3d9_index);
-   m_indices = reinterpret_cast<d3d9_index*>(std::malloc(10000 * sizeof(d3d9_index)));
+   m_size_indices = INITIAL_INDEX_BUFFER_SIZE * sizeof(d3d9_index);
+   m_indices = reinterpret_cast<d3d9_index*>(std::malloc(m_size_indices));
    
-   m_size_draw_cmds = 128 * sizeof(s_draw_cmd);
+   m_size_draw_cmds = INITIAL_DRAW_CMD_BUFFER_SIZE * sizeof(s_draw_cmd);
    m_draw_cmds = reinterpret_cast<s_draw_cmd*>(std::malloc(m_size_draw_cmds));
 }
 
 bool renderer::s_draw_list::reserve(size_t num_vertices, size_t num_indices) {
     size_t future_size = (m_num_vertices + num_vertices) * sizeof(d3d9::s_vertex);
 
-    // managing memory manually will use more memory but is faster  
+    // managing memory manually can use more memory but is faster
     // if u guys want i can use vectors and let them manage it for me but it'll perform "worse"
     if (future_size > m_size_vertices) {
         const size_t new_size = max(m_size_vertices * 2, future_size);
+        const size_t old_size = m_size_vertices;
 
         // allocate the new memory
-        void* mem = std::malloc(new_size);  
+        void* mem = std::malloc(future_size);
         if (!mem)
             return false;
 
@@ -38,14 +39,16 @@ bool renderer::s_draw_list::reserve(size_t num_vertices, size_t num_indices) {
 
         // swap pointers and set size
         m_vertices = static_cast<d3d9::s_vertex*>(mem);
-        m_size_vertices = new_size;
-        
-        std::cout << "allocated " << new_size << " bytes for vertices";
+        m_size_vertices = future_size;
+
+        std::cout << "allocated " << future_size - old_size << "b for the vertex buffer\n";
+        std::cout << "total size is now: " << m_size_vertices / 1024 << "mb\n";
     }
 
     future_size = (m_num_indices + num_vertices) * sizeof(d3d9_index);
     if (future_size > m_size_indices) {
         const size_t new_size = max(m_size_indices * 2, future_size);
+        const size_t old_size = m_size_indices;
 
         // allocate the new memory
         void* mem = std::malloc(new_size);
@@ -61,7 +64,8 @@ bool renderer::s_draw_list::reserve(size_t num_vertices, size_t num_indices) {
         m_indices = static_cast<d3d9_index*>(mem);
         m_size_indices = new_size;
 
-        std::cout << "allocated " << new_size << " bytes for indices";
+        std::cout << "allocated " << new_size - old_size << "b for the index buffer\n";
+        std::cout << "total size is now: " << m_size_indices / 1024 << "mb\n";
     }
 
     return true;
@@ -70,8 +74,9 @@ bool renderer::s_draw_list::reserve(size_t num_vertices, size_t num_indices) {
 bool renderer::s_draw_list::reserve_points(size_t num_points) {
     const size_t future_size = (m_num_points + num_points) * sizeof(s_point);
 
-    if (future_size > m_size_path) {
-        const size_t new_size = max(m_size_path * 2, future_size);
+    if (future_size > m_size_points) {
+        const size_t new_size = max(m_size_points * 2, future_size);
+        const size_t old_size = m_size_indices;
 
         // allocate the new memory
         void* mem = std::malloc(new_size);
@@ -79,22 +84,23 @@ bool renderer::s_draw_list::reserve_points(size_t num_points) {
             return false;
 
         // copy old to new
-        std::memcpy(mem, m_points, m_size_path);
+        std::memcpy(mem, m_points, m_size_points);
         // free old
         std::free(m_points);
 
         // swap pointers and set size
         m_points = static_cast<s_point*>(mem);
-        m_size_path = new_size;
+        m_size_points = new_size;
 
-        std::cout << "allocated " << new_size << " bytes for points";
+        std::cout << "allocated: " << new_size - old_size << "b for the points buffer\n";
+        std::cout << "total size is now: " << m_size_points / 1024 << "mb\n";
     }
 
     return true;
 }
 
 void renderer::s_draw_list::push_draw_cmd() {
-    /* calculate the number of vertices and indices present in draw commands */
+    // calculate the number of vertices and indices present in draw commands
     size_t num_accounted_vertices = 0, num_accounted_indices = 0;
     size_t i = 0;
     for (; i < m_num_draw_cmds; i++) {
@@ -102,14 +108,14 @@ void renderer::s_draw_list::push_draw_cmd() {
         num_accounted_indices += m_draw_cmds[i].m_num_indices;
     }
 
-    /* calculate the number of vertices and indices NOT present in draw commands */
+    // calculate the number of vertices and indices NOT present in draw commands
     size_t num_unaccounted_indices = m_num_indices - num_accounted_indices;
 
-    /* create draw commands until all vertices and indices are present in draw commands */
+    // create draw commands until all vertices and indices are present in draw commands
     while (num_unaccounted_indices > 0) {
-        /* If the number of unaccounted indices is less than the maximum number of indices that can be hold by 'nmd_index'(usually 2^16) */
+        // If the number of unaccounted indices is less than the maximum number of indices that can be hold by 'd3d9_index'(usually 2^16)
         if (num_unaccounted_indices < (1 << (8 * sizeof(d3d9_index)))) {
-            /* add draw command */
+            // add draw command
             m_draw_cmds[m_num_draw_cmds].m_num_vertices = m_num_vertices - num_accounted_vertices;
             m_draw_cmds[m_num_draw_cmds].m_num_indices = m_num_indices - num_accounted_indices;
 
@@ -141,17 +147,17 @@ void renderer::s_draw_list::push_draw_cmd() {
     }
 }
 
-void renderer::s_draw_list::path_stroke(s_color&& color) {
-    add_polyline(m_points, m_num_points, std::move(color), 1.f);
+void renderer::s_draw_list::path_stroke(const s_color& color) {
+    add_polyline(m_points, m_num_points, color, 1.f);
     path_clear();
 }
 
-void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num_points, s_color&& color, float thickness) {
-
+void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num_points, const s_color& color, float thickness) {
     if (num_points < 2)
         return;
 
     const d3d_color d3d_col = color.to_d3d();
+
     // https://docs.microsoft.com/en-us/windows/win32/direct3d9/rendering-from-vertex-and-index-buffers
     const size_t num_indices = num_points * 6;
     const size_t num_vertices = num_points * 4;
@@ -193,27 +199,27 @@ void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num
     }
 }
 
-void renderer::s_draw_list::add_rect(s_rect&& rect, s_color&& color) {
+void renderer::s_draw_list::add_rect(const s_rect& rect, const s_color& color) {
     path_to({rect.x, rect.y});
     path_to({rect.x + rect.w, rect.y});
     path_to({rect.x + rect.w, rect.y + rect.h});
     path_to({rect.x, rect.y + rect.h});
 
-    path_stroke(std::move(color));
+    path_stroke(color);
 }
 
-void renderer::s_draw_list::add_triangle(s_point&& point1, s_point&& point2, s_point&& point3, s_color&& color) {
-    path_to(std::move(point1));
-    path_to(std::move(point2));
-    path_to(std::move(point3));
+void renderer::s_draw_list::add_triangle(const s_point& point1, const s_point& point2, const s_point& point3, const s_color& color) {
+    path_to(point1);
+    path_to(point2);
+    path_to(point3);
 
-    path_stroke(std::move(color));
+    path_stroke(color);
 }
 
 #pragma region d3d9
-void renderer::d3d9::init(LPDIRECT3DDEVICE9 d3d9_device, s_vec2&& display_size) {
+void renderer::d3d9::init(LPDIRECT3DDEVICE9 d3d9_device, const s_vec2& display_size) {
     set_device(d3d9_device);
-    set_size(std::move(display_size));
+    set_size(display_size);
     create_vertex_declaration();
 }
 
@@ -226,11 +232,11 @@ void renderer::d3d9::set_device(LPDIRECT3DDEVICE9 d3d9_device) {
     info.viewport.MaxZ = 1.0f;
 }
 
-void renderer::d3d9::set_size(s_vec2&& size) {
+void renderer::d3d9::set_size(const s_vec2& size) {
     const float L = 0.0f;
-    const float R = (float)size.x + 0.0f;
+    const float R = size.x + 0.0f;
     const float T = 0.0f;
-    const float B = (float)size.y + 0.0f;
+    const float B = size.y + 0.0f;
     float matrix[4][4] = {
         { 2.0f / (R - L),     0.0f,             0.0f, 0.0f },
         { 0.0f,               2.0f / (T - B),   0.0f, 0.0f },
@@ -239,8 +245,8 @@ void renderer::d3d9::set_size(s_vec2&& size) {
     };
     std::memcpy(&info.proj, matrix, sizeof(matrix));
 
-    info.viewport.Width = (int)size.x;
-    info.viewport.Height = (int)size.y;
+    info.viewport.Width = (DWORD)size.x;
+    info.viewport.Height = (DWORD)size.y;
 }
 
 void renderer::d3d9::set_render_states() {
@@ -299,7 +305,7 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
         }
 
         // create the new buffer
-        info.vb_size = draw_list->m_size_vertices + 2000;
+        info.vb_size = draw_list->m_size_vertices + INITIAL_VERTEX_BUFFER_SIZE;
         if (info.device->CreateVertexBuffer(info.vb_size * sizeof(s_vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 0, D3DPOOL_DEFAULT, &info.vb, NULL) < 0)
             return;
     }
@@ -313,7 +319,7 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
         }
 
         // create the new buffer
-        info.ib_size = draw_list->m_size_indices + 4000;
+        info.ib_size = draw_list->m_size_indices + INITIAL_INDEX_BUFFER_SIZE;
         if (info.device->CreateIndexBuffer(info.ib_size * sizeof(d3d9_index), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_DEFAULT, &info.ib, NULL) < 0)
             return;
     }

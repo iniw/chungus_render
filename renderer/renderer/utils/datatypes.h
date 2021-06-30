@@ -12,7 +12,6 @@ namespace renderer {
 	using s_point = s_vec2;
 
 	namespace d3d9 {
-		// custom vertex lets goooo
 		struct s_vertex {
 			s_point pos;
 			d3d_color color;

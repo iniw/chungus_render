@@ -26,7 +26,7 @@ namespace renderer {
 
 		inline s_vec2& normalize() {
 			const float len = length();
-			const float radius = 1.f / (len + std::numeric_limits<float>::epsilon());
+			const float radius = 1.f / (len + FLT_EPSILON);
 
 			x *= radius;
 			y *= radius;
