@@ -42,8 +42,8 @@ int main() {
     memset(&d3dpp, 0, sizeof(D3DPRESENT_PARAMETERS));
     d3dpp.Windowed = TRUE;
     d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-    d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
-    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+    d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;
+    d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
     if (d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3d9_device) < 0)
         return false;
 
