@@ -20,23 +20,32 @@ namespace renderer {
 	};
 
 	struct s_draw_list {
-		bool m_aa; // anti-aliasing, not implemented yet
 
-		s_point* m_points; // points buffer
-		size_t m_num_points; // number of points in the buffer, this also doubles as the index
-		size_t m_size_points; // size of the buffer in bytes
+		// TODO: make a template struct for this
 
-		d3d9::s_vertex* m_vertices; // vertices buffer
-		size_t m_num_vertices; // number of vertices in the buffer
-		size_t m_size_vertices; // size of the 'vertices' buffer in bytes
+		struct {
+			s_point* buffer;
+			size_t size;
+			size_t capacity;
+		} m_points;
 
-		d3d9_index* m_indices; // indices buffer
-		size_t m_num_indices; // number of indices in the 'indices' buffer
-		size_t m_size_indices; // size of the buffer in bytes
+		struct {
+			d3d9::s_vertex* buffer;
+			size_t size;
+			size_t capacity;
+		} m_vertices;
 
-		s_draw_cmd* m_draw_cmds; // draw commands buffer
-		size_t m_num_draw_cmds; // number of draw commands in the buffer
-		size_t m_size_draw_cmds; // size of the buffer in bytes
+		struct {
+			d3d9_index* buffer;
+			size_t size;
+			size_t capacity;
+		} m_indices;
+
+		struct {
+			s_draw_cmd* buffer;
+			size_t size;
+			size_t capacity;
+		} m_draw_cmds;
 
 		void init();
 		
@@ -46,10 +55,10 @@ namespace renderer {
 		void push_draw_cmd();
 
 		// the two basic pathing functions, forcefully inlined because they will be called a LOT
-		__forceinline void path_clear() { m_num_points = 0; }
+		__forceinline void path_clear() { m_points.size = 0; }
 		__forceinline void path_to(const s_point& point) { 
-			m_points[m_num_points] = point;
-			m_num_points++;
+			m_points.buffer[m_points.size] = point;
+			m_points.size++;
 		}
 
 		void path_stroke(const s_color& color);

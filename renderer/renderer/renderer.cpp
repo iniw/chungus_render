@@ -8,9 +8,9 @@ void renderer::init(LPDIRECT3DDEVICE9 d3d9_device, const s_vec2& display_size) {
 }
 
 void renderer::start() {
-	draw_list.m_num_vertices = 0;
-	draw_list.m_num_indices = 0;
-	draw_list.m_num_draw_cmds = 0;
+	draw_list.m_vertices.size = 0;
+	draw_list.m_indices.size = 0;
+	draw_list.m_draw_cmds.size = 0;
 }
 
 void renderer::end() {
