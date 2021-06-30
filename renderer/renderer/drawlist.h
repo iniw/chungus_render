@@ -32,18 +32,22 @@ namespace renderer {
 		__forceinline void reset_path() { 
 			m_points.size = 0; 
 		}
+
 		__forceinline void add_point(const s_point& point) { 
 			m_points.buffer[m_points.size] = point;
 			m_points.size++;
 		}
+
 		__forceinline void draw_path(const d3d9::color& color, const float& thickness) {
 			add_polyline(m_points.buffer, m_points.size, color, thickness);
 			reset_path();
 		}
+
 	public:
 		void add_polyline(const s_point* points, const size_t num_points, const d3d9::color color, const float thickness);
-		void add_line(const s_point& point1, const s_point& point2, const d3d9::color color, const float thickness);
+		void add_line(const s_point& mins, const s_point& maxs, const d3d9::color color, const float thickness);
 		void add_triangle(const s_point& point1, const s_point& point2, const s_point& point3, const d3d9::color color, const float thickness);
+		void add_rect(const s_point& mins, const s_point& maxs, const d3d9::color color, const float thickness);
 		void add_rect(const s_rect& rect, const d3d9::color color, const float thickness);
 	public:
 		void push_draw_cmd();

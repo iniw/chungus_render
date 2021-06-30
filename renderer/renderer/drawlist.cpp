@@ -171,9 +171,9 @@ void renderer::drawlist::add_polyline(const s_point* points, const size_t num_po
     }
 }
 
-void renderer::drawlist::add_line(const s_point& point1, const s_point& point2, const d3d9::color color, const float thickness) {
-    add_point(point1);
-    add_point(point2);
+void renderer::drawlist::add_line(const s_point& mins, const s_point& maxs, const d3d9::color color, const float thickness) {
+    add_point(mins);
+    add_point(maxs);
 
     draw_path(color, thickness);
 }
@@ -186,13 +186,17 @@ void renderer::drawlist::add_triangle(const s_point& point1, const s_point& poin
     draw_path(color, thickness);
 }
 
-void renderer::drawlist::add_rect(const s_rect& rect, const d3d9::color color, const float thickness) {
-    add_point({rect.x, rect.y});
-    add_point({rect.x + rect.w, rect.y});
-    add_point({rect.x + rect.w + 0.5f, rect.y + rect.h});
-    add_point({rect.x, rect.y + rect.h});
+void renderer::drawlist::add_rect(const s_point& mins, const s_point& maxs, const d3d9::color color, const float thickness) {
+    add_point(mins);
+    add_point({ maxs.x, mins.y });
+    add_point(maxs + s_point{ 0.f, 0.5f });
+    add_point({ mins.x, maxs.y });
 
     draw_path(color, thickness);
+}
+
+void renderer::drawlist::add_rect(const s_rect& rect, const d3d9::color color, const float thickness) {
+    add_rect(rect.mins(), rect.maxs(), color, thickness);
 }
 
 void renderer::drawlist::push_draw_cmd() {
@@ -217,7 +221,8 @@ void renderer::drawlist::push_draw_cmd() {
             m_draw_cmds.size++;
 
             return;
-        } else {
+        }
+        else {
             size_t num_indices = UINT16_MAX;
             d3d9::index last_index = m_indices.buffer[num_indices - 1];
 
