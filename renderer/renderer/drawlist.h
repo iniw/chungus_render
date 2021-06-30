@@ -61,6 +61,7 @@ namespace renderer {
 			m_points.size++;
 		}
 
+		void path_rect(const s_point& min, const s_point& max);
 		void path_stroke(const s_color& col);
 
 		void add_polyline(const s_point* points, const size_t num_points, const s_color& col, float thickness = 1.f);

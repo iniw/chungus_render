@@ -33,5 +33,9 @@ namespace renderer {
 
 			return *this;
 		}
+
+		inline s_vec2 operator+(const s_vec2& pt) const {
+			return { x + pt.x, y + pt.y };
+		}
 	};
 }

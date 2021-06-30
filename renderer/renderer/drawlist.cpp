@@ -153,6 +153,13 @@ void renderer::s_draw_list::push_draw_cmd() {
     }
 }
 
+void renderer::s_draw_list::path_rect(const s_point& min, const s_point& max) {
+    path_to(min);
+    path_to({ max.x, min.y });
+    path_to(max + s_point{ 0.f, 0.5f }); // prevent bottom right corner from being 1px off
+    path_to({ min.x, max.y }); 
+}
+
 void renderer::s_draw_list::path_stroke(const s_color& col) {
     add_polyline(m_points.buffer, m_points.size, col, 1.f);
     path_clear();
@@ -173,6 +180,7 @@ void renderer::s_draw_list::add_polyline(const s_point* points, const size_t num
 
     for (size_t i = 0; i < num_points; i++) {
         const size_t j = (i + 1) == num_points ? 0 : i + 1;
+
         const s_point& p0 = points[i];
         const s_point& p1 = points[j];
 
@@ -210,10 +218,7 @@ void renderer::s_draw_list::add_rect(const s_rect& rect, const s_color& col) {
     if (col.a == 0)
         return;
 
-    path_to({rect.x, rect.y});
-    path_to({rect.x + rect.w, rect.y});
-    path_to({rect.x + rect.w + 0.5f, rect.y + rect.h});
-    path_to({rect.x, rect.y + rect.h});
+    path_rect(rect.mins(), rect.maxs());
 
     path_stroke(col);
 }
@@ -314,14 +319,14 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
         // Delete it
         if (info.vb) {
             info.vb->Release();
-            info.vb = 0;
+            info.vb = nullptr;
         }
 
         //std::cout << "creating a new vertex buffer. old size: " << info.vb_size << " new size: " << (draw_list->m_vertices.size + INITIAL_VERTEX_BUFFER_SIZE) * sizeof(d3d9_vertex) << "\n";
 
         // create the new buffer
         info.vb_size = draw_list->m_vertices.size + INITIAL_VERTEX_BUFFER_SIZE;
-        if (info.device->CreateVertexBuffer(info.vb_size * sizeof(d3d9_vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 0, D3DPOOL_DEFAULT, &info.vb, NULL) < 0)
+        if (info.device->CreateVertexBuffer(info.vb_size * sizeof(d3d9_vertex), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 0, D3DPOOL_DEFAULT, &info.vb, NULL) < D3D_OK)
             return;
             
         set_render_states();
@@ -332,14 +337,14 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
         // Delete it
         if (info.ib) {
             info.ib->Release();
-            info.ib = 0;
+            info.ib = nullptr;
         }
 
         //std::cout << "creating a new index buffer. old size: " << info.ib_size << " new size: " << (draw_list->m_indices.size + INITIAL_INDEX_BUFFER_SIZE) * sizeof(d3d9_index) << "\n";
 
         // create the new buffer
         info.ib_size = draw_list->m_indices.size + INITIAL_INDEX_BUFFER_SIZE;
-        if (info.device->CreateIndexBuffer(info.ib_size * sizeof(d3d9_index), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(d3d9_index) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &info.ib, NULL) < 0)
+        if (info.device->CreateIndexBuffer(info.ib_size * sizeof(d3d9_index), D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, sizeof(d3d9_index) == 2 ? D3DFMT_INDEX16 : D3DFMT_INDEX32, D3DPOOL_DEFAULT, &info.ib, NULL) < D3D_OK)
             return;
 
         set_render_states();
@@ -348,7 +353,7 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
     {
         // copy vertices to gpu
         d3d9_vertex* new_vertices = nullptr;
-        if (info.vb->Lock(0, draw_list->m_vertices.size * sizeof(d3d9_vertex), reinterpret_cast<void**>(&new_vertices), D3DLOCK_DISCARD) < 0)
+        if (info.vb->Lock(0, draw_list->m_vertices.size * sizeof(d3d9_vertex), reinterpret_cast<void**>(&new_vertices), D3DLOCK_DISCARD) < D3D_OK)
             return;
 
         std::memcpy(new_vertices, draw_list->m_vertices.buffer, draw_list->m_vertices.size * sizeof(d3d9_vertex));
@@ -359,7 +364,7 @@ void renderer::d3d9::render(s_draw_list* draw_list) {
     {
         // copy indices to the gpu
         d3d9_index* new_indices = nullptr;
-        if (info.ib->Lock(0, draw_list->m_indices.size * sizeof(d3d9_index), reinterpret_cast<void**>(&new_indices), D3DLOCK_DISCARD) < 0)
+        if (info.ib->Lock(0, draw_list->m_indices.size * sizeof(d3d9_index), reinterpret_cast<void**>(&new_indices), D3DLOCK_DISCARD) < D3D_OK)
             return;
 
         std::memcpy(new_indices, draw_list->m_indices.buffer, draw_list->m_indices.size * sizeof(d3d9_index));
