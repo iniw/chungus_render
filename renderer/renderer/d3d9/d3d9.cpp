@@ -1,7 +1,7 @@
 #include "d3d9.h"
 #include <cstring>
 
-void renderer::d3d9::object::init(LPDIRECT3DDEVICE9 d3d9_device, const s_vec2& display_size) {
+void renderer::d3d9::object::init(LPDIRECT3DDEVICE9 d3d9_device, const vec_2& display_size) {
     m_device = d3d9_device;
 
     set_size(display_size);
@@ -9,7 +9,7 @@ void renderer::d3d9::object::init(LPDIRECT3DDEVICE9 d3d9_device, const s_vec2& d
     create_buffers();
 }
 
-void renderer::d3d9::object::set_size(const s_vec2& size) {
+void renderer::d3d9::object::set_size(const vec_2& size) {
     const float L = 0.0f;
     const float R = size.x;
     const float T = 0.0f;
@@ -60,6 +60,39 @@ void renderer::d3d9::object::create_buffers() {
 #endif
 }
 
+renderer::d3d9::tex_id renderer::d3d9::object::create_texture(const uint8_t* data, const int width, const int height) {
+    IDirect3DTexture9* temp_tex;
+    if (m_device->CreateTexture(width, height, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &temp_tex, nullptr) != D3D_OK)
+        return nullptr;
+
+    D3DLOCKED_RECT lock_rect;
+    if (temp_tex->LockRect(0, &lock_rect, nullptr, D3DLOCK_DISCARD) != D3D_OK) {
+        temp_tex->Release();
+        return nullptr;
+    }
+
+    for (int y = 0; y < height; ++y) {
+        const auto dest = reinterpret_cast<uint32_t*>((unsigned char*)lock_rect.pBits + lock_rect.Pitch * y);
+        std::memcpy(dest, data + width * 4 * y, width * 4);
+        for (int i = 0; i < width; ++i) {
+            auto color = dest[i];
+            dest[i] = (color & 0xFF00FF00) | ((color & 0xFF0000) >> 16) | ((color & 0xFF) << 16); // rgba to brga
+        }
+    }
+
+    temp_tex->UnlockRect(0);
+
+    IDirect3DTexture9* tex;
+    if (m_device->CreateTexture(width, height, 1, D3DUSAGE_AUTOGENMIPMAP, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &tex, nullptr) != D3D_OK) {
+        temp_tex->Release();
+        return nullptr;
+    }
+
+    m_device->UpdateTexture(temp_tex, tex);
+    temp_tex->Release();
+
+    return tex;
+}
 
 void renderer::d3d9::object::set_render_states() {
     m_device->SetStreamSource(0, m_vb, 0, sizeof(vertex));

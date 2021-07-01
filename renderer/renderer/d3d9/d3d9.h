@@ -1,6 +1,6 @@
 #pragma once
 #include <d3d9.h>
-#include "../utils/datatypes.h"
+#include "../utils/types/types.h"
 
 namespace renderer {
 	// imgui
@@ -17,10 +17,13 @@ namespace renderer {
 			D3DVIEWPORT9 m_viewport;
 			LPDIRECT3DVERTEXDECLARATION9 m_vtx_decl; // our custom vertex declaration
 		public:
-			void init(LPDIRECT3DDEVICE9 d3d9_device, const s_vec2& display_size);
-			void set_size(const s_vec2& size);
+			void init(LPDIRECT3DDEVICE9 d3d9_device, const vec_2& display_size);
+			void set_size(const vec_2& size);
 			void create_vertex_declaration();
 			void create_buffers();
+
+			// s/o daniel krupinski
+			tex_id create_texture(const uint8_t* data, const int width, const int height);
 
 			void set_render_states();
 		};

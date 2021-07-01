@@ -2,20 +2,20 @@
 #include <limits>
 
 namespace renderer {
-	struct s_vec2 {
+	struct vec_2 {
 	public:
 		float x, y;
 	public:
-		constexpr s_vec2(float x = 0.f, float y = 0.f) : x(x), y(y) {}
+		constexpr vec_2(float x = 0.f, float y = 0.f) : x(x), y(y) {}
 	public:
-		inline s_vec2 operator-(const s_vec2& v) const {
-			s_vec2 r = *this;
+		inline vec_2 operator-(const vec_2& v) const {
+			vec_2 r = *this;
 			r.x -= v.x;
 			r.y -= v.y;
 			return r;
 		}
 
-		inline s_vec2 operator*=(const float& v) {
+		inline vec_2 operator*=(const float& v) {
 			this->x *= v;
 			this->y *= v;
 			return *this;
@@ -25,7 +25,7 @@ namespace renderer {
 			return hypotf(x, y);
 		}
 
-		inline s_vec2& normalize() {
+		inline vec_2& normalize() {
 			const float len = length();
 			const float radius = 1.f / (len + FLT_EPSILON);
 

@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>LOG_MEM_CONSUMPTION;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,11 +148,13 @@
     <ClInclude Include="renderer\d3d9\d3d9.h" />
     <ClInclude Include="renderer\drawlist.h" />
     <ClInclude Include="renderer\renderer.h" />
-    <ClInclude Include="renderer\utils\buffer.h" />
-    <ClInclude Include="renderer\utils\color.h" />
-    <ClInclude Include="renderer\utils\datatypes.h" />
-    <ClInclude Include="renderer\utils\vec_2.h" />
-    <ClInclude Include="renderer\utils\rect.h" />
+    <ClInclude Include="renderer\utils\types\buffer.h" />
+    <ClInclude Include="renderer\utils\types\color.h" />
+    <ClInclude Include="renderer\utils\types\types.h" />
+    <ClInclude Include="renderer\utils\lib\stb_image.h" />
+    <ClInclude Include="renderer\utils\textures\biohazard.h" />
+    <ClInclude Include="renderer\utils\types\vec_2.h" />
+    <ClInclude Include="renderer\utils\types\rect.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

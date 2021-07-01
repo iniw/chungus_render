@@ -1,6 +1,10 @@
 #include <Windows.h>
 #include <iostream>
+#include <chrono>
 #include "renderer/renderer.h"
+#include "renderer/utils/textures/biohazard.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "renderer/utils/lib/stb_image.h"
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
@@ -25,7 +29,7 @@ int main() {
     if (!RegisterClassExW(&wcx))
         return -1;
 
-    constexpr renderer::s_vec2 display_size = {640.f, 480.f};
+    constexpr renderer::vec_2 display_size = {640.f, 480.f};
 
     HWND window;
     if (!(window = CreateWindowExW(0, TEXT("Chungus Renderer"), TEXT("Chungus Renderer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, display_size.x, display_size.y, NULL, NULL, NULL, NULL)))
@@ -47,7 +51,14 @@ int main() {
     if (d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3d9_device) < 0)
         return false;
 
+    
     renderer::init(d3d9_device, display_size);
+
+    int width, height;
+    const auto data = stbi_load_from_memory(biohazard_data, 14311, &width, &height, nullptr, STBI_rgb_alpha);
+    renderer::create_texture(renderer::tex_biohazard, data, width, height);
+    stbi_image_free(data);
+
 
     MSG msg;
     while (true) {
@@ -60,12 +71,14 @@ int main() {
         }
 
         renderer::start();
+        
+        renderer::texture(renderer::tex_biohazard, {0, 0}, {255, 255, 255, 255});
 
-        renderer::rect({100.f, 100.f, 250.f, 250.f}, {255, 0, 0, 255});
-
+        renderer::rectangle({50.f, 50.f, 250.f, 250.f}, {255, 0, 0, 255});
+        
         renderer::triangle({200.f, 200.f}, {250.f, 150.f}, {300.f, 200.f}, {255, 255, 0, 255});
 
-        renderer::line({300.f, 400.f}, {150.f, 200.f}, {255, 255, 255, 255});
+        renderer::line({200.f, 300.f}, {150.f, 200.f}, {255, 0, 0, 255});
 
         renderer::end();
 
