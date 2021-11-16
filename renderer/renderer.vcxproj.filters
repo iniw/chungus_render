@@ -15,48 +15,72 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="renderer\renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\d3d9\d3d9.cpp">
+    <ClCompile Include="render\d3d9\d3d9.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="renderer\drawlist.cpp">
+    <ClCompile Include="render\drawlist\drawlist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="render\font\font.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="render\threadsafe\threadsafe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="render\render.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="renderer\renderer.h">
+    <ClInclude Include="render\d3d9\d3d9.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\d3d9\d3d9.h">
+    <ClInclude Include="render\drawlist\drawlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\drawlist.h">
+    <ClInclude Include="render\font\font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\utils\lib\stb_image.h">
+    <ClInclude Include="render\lib\lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\utils\textures\biohazard.h">
+    <ClInclude Include="render\lib\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\utils\types\buffer.h">
+    <ClInclude Include="render\lib\stb_truetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\utils\types\color.h">
+    <ClInclude Include="render\threadsafe\threadsafe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\utils\types\rect.h">
+    <ClInclude Include="render\types\geometry\base.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\utils\types\vec_2.h">
+    <ClInclude Include="render\types\geometry\geometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer\utils\types\types.h">
+    <ClInclude Include="render\types\geometry\line.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="render\types\geometry\rectangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="render\types\buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="render\types\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="render\types\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="render\render.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="render\variadic_vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

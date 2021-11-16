@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -108,6 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,22 +146,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="renderer\d3d9\d3d9.h" />
-    <ClInclude Include="renderer\drawlist.h" />
-    <ClInclude Include="renderer\renderer.h" />
-    <ClInclude Include="renderer\utils\types\buffer.h" />
-    <ClInclude Include="renderer\utils\types\color.h" />
-    <ClInclude Include="renderer\utils\types\types.h" />
-    <ClInclude Include="renderer\utils\lib\stb_image.h" />
-    <ClInclude Include="renderer\utils\textures\biohazard.h" />
-    <ClInclude Include="renderer\utils\types\vec_2.h" />
-    <ClInclude Include="renderer\utils\types\rect.h" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="render\d3d9\d3d9.cpp" />
+    <ClCompile Include="render\drawlist\drawlist.cpp" />
+    <ClCompile Include="render\font\font.cpp" />
+    <ClCompile Include="render\render.cpp" />
+    <ClCompile Include="render\threadsafe\threadsafe.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="renderer\d3d9\d3d9.cpp" />
-    <ClCompile Include="renderer\drawlist.cpp" />
-    <ClCompile Include="renderer\renderer.cpp" />
+    <ClInclude Include="render\d3d9\d3d9.h" />
+    <ClInclude Include="render\drawlist\drawlist.h" />
+    <ClInclude Include="render\font\font.h" />
+    <ClInclude Include="render\lib\lib.h" />
+    <ClInclude Include="render\lib\stb_image.h" />
+    <ClInclude Include="render\lib\stb_truetype.h" />
+    <ClInclude Include="render\render.h" />
+    <ClInclude Include="render\threadsafe\threadsafe.h" />
+    <ClInclude Include="render\types\buffer.h" />
+    <ClInclude Include="render\types\color.h" />
+    <ClInclude Include="render\types\geometry\base.h" />
+    <ClInclude Include="render\types\geometry\geometry.h" />
+    <ClInclude Include="render\types\geometry\line.h" />
+    <ClInclude Include="render\types\geometry\rectangle.h" />
+    <ClInclude Include="render\types\types.h" />
+    <ClInclude Include="render\variadic_vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

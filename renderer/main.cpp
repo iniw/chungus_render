@@ -1,10 +1,12 @@
 #include <Windows.h>
 #include <iostream>
 #include <chrono>
-#include "renderer/renderer.h"
-#include "renderer/utils/textures/biohazard.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "renderer/utils/lib/stb_image.h"
+#pragma comment (lib, "d3dx9")
+#include <d3d9.h>
+#include <d3dx9.h>
+#include <d3dx9core.h>
+#include "render/render.h"
+#include "render/variadic_vector.h"
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
@@ -19,6 +21,100 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
+using vec_2 = render::point;
+
+constexpr vec_2 display_size = { 1280.f, 720.f };
+
+class c_engine {
+public:
+    static constexpr vec_2 axis = { 250.f, 600.f };
+    static constexpr auto init_dist = 200.f;
+    static constexpr auto block_dist = 100.f;
+
+    c_engine(const vec_2& d1, const vec_2& d2, const double& m1, const double& m2, const double& v1, const double& v2)
+        : m1(m1), m2(m2), v1(v1), v2(v2), collisions(0), frametime(0.f)
+    {
+        big_rect = math::v4{ axis[X] + init_dist + block_dist, axis[Y] - d1[Y], d1[X], d1[Y] };
+        small_rect = math::v4{ axis[X] + init_dist, axis[Y] - d2[Y], d2[X], d2[Y] };
+    }
+
+    void start() {
+        t1 = std::chrono::high_resolution_clock::now();
+    }
+    
+    void end() {
+        update();
+    }
+
+    void run() {
+        g_render.line(axis, { axis[X], 0.f }, { 255, 255, 255, 255 });
+        g_render.line(axis, { display_size[X], axis[Y] }, { 255, 255, 255, 255 });
+
+        // hate this
+        auto big_rect_pos = big_rect[X];
+        if (big_rect_pos < small_rect[X] + small_rect[X2])
+            big_rect_pos = small_rect[X] + small_rect[X2];
+
+        g_render.rectangle_filled({ big_rect_pos, big_rect[Y] }, { big_rect[X2], big_rect[Y2] }, { 255, 0, 0, 255 });
+        g_render.rectangle_filled({ small_rect[X], small_rect[Y] }, { small_rect[X2], small_rect[Y2] }, { 0, 0, 255, 255 });
+
+        g_render.rectangle({ big_rect_pos, big_rect[Y]  }, { big_rect[X2], big_rect[Y2] }, { 255, 255, 255, 255 });
+        g_render.rectangle({ small_rect[X], small_rect[Y] }, { small_rect[X2], small_rect[Y2] }, { 255, 255, 255, 255 });
+
+        g_render.text("Collisions: " + std::to_string(collisions), { 800, 300 }, { 255, 255, 255, 255 });
+        g_render.text("C H U N G U S", { 100, 200 }, { 255, 255, 255, 255 });
+    }
+
+private:
+    void update() {
+        t2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float, std::milli> ms = t2 - t1;
+        frametime = ms.count() * 0.1f;
+
+        big_rect[X] += v1 * frametime;
+        small_rect[X] += v2 * frametime;
+
+        if (small_rect[X] + small_rect[X2] > big_rect[X]) {
+            on_block_collision();
+            small_rect[X] = big_rect[X] - small_rect[X2];
+        }
+
+        if (small_rect[X] < axis[X]) {
+            on_wall_collision();
+            small_rect[X] = axis[X];
+        }
+    }
+
+    void on_block_collision() {
+        auto v1_p = ((m1 - m2) * v1 + (2 * m2) * v2) / (m1 + m2);
+        auto v2_p = ((2 * m1) * v1 - (m1 - m2) * v2) / (m1 + m2);
+
+        v1 = v1_p;
+        v2 = v2_p;
+
+        collisions++;
+    }
+
+    void on_wall_collision() {
+        v2 *= -1.0;
+
+        collisions++;
+    }
+
+private:
+    int collisions;
+
+    render::rect big_rect;
+    render::rect small_rect;
+    
+    // mass, vel
+    float m1, v1;
+    float m2, v2;
+
+    float frametime;
+    std::chrono::steady_clock::time_point t1, t2;
+};
+
 int main() {
     WNDCLASSEXW wcx;
     memset(&wcx, 0, sizeof(WNDCLASSEXW));
@@ -29,10 +125,8 @@ int main() {
     if (!RegisterClassExW(&wcx))
         return -1;
 
-    constexpr renderer::vec_2 display_size = {640.f, 480.f};
-
     HWND window;
-    if (!(window = CreateWindowExW(0, TEXT("Chungus Renderer"), TEXT("Chungus Renderer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, display_size.x, display_size.y, NULL, NULL, NULL, NULL)))
+    if (!(window = CreateWindowExW(0, TEXT("Chungus Renderer"), TEXT("Chungus Renderer"), WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, display_size[X], display_size[Y], NULL, NULL, NULL, NULL)))
         return -1;
 
     ShowWindow(window, SW_SHOW);
@@ -51,15 +145,10 @@ int main() {
     if (d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, window, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3d9_device) < 0)
         return false;
 
+    g_render.init(d3d9_device);
+
+    c_engine engine({ 100.f, 100.f }, { 50.f, 50.f }, pow(100.0, 4), 1, -1.0, 0.0);
     
-    renderer::init(d3d9_device, display_size);
-
-    int width, height;
-    const auto data = stbi_load_from_memory(biohazard_data, 14311, &width, &height, nullptr, STBI_rgb_alpha);
-    renderer::create_texture(renderer::tex_biohazard, data, width, height);
-    stbi_image_free(data);
-
-
     MSG msg;
     while (true) {
         while (PeekMessageW(&msg, NULL, NULL, NULL, PM_REMOVE)) {
@@ -70,22 +159,20 @@ int main() {
                 return 0;
         }
 
-        renderer::start();
-        
-        renderer::texture(renderer::tex_biohazard, {0, 0}, {255, 255, 255, 255});
+        engine.start();
+        {
+            d3d9_device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0, 0);
+            d3d9_device->BeginScene();
 
-        renderer::rectangle({50.f, 50.f, 250.f, 250.f}, {255, 0, 0, 255});
-        
-        renderer::triangle({200.f, 200.f}, {250.f, 150.f}, {300.f, 200.f}, {255, 255, 0, 255});
+            g_render.start();
+            {
+                engine.run();
+            }
+            g_render.end();
 
-        renderer::line({200.f, 300.f}, {150.f, 200.f}, {255, 0, 0, 255});
-
-        renderer::end();
-
-        d3d9_device->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_RGBA(0, 0, 0, 255), 0, 0);
-        d3d9_device->BeginScene();
-        renderer::render();
-        d3d9_device->EndScene();
-        HRESULT result = d3d9_device->Present(NULL, NULL, NULL, NULL);
+            d3d9_device->EndScene();
+            HRESULT result = d3d9_device->Present(NULL, NULL, NULL, NULL);
+        }
+        engine.end();
     }
 }
